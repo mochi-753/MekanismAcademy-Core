@@ -13,17 +13,21 @@ object ModConfig {
     const val PARCHMENT_MAPPING_VERSION = "2024.11.17"
     const val LOADER_VERSION_RANGE = "[1,)"
 
-    const val MOD_ID = "examplemod"
-    const val MOD_NAME = "Example Mod"
+    const val MOD_ID = "mekanismacademy"
+    const val MOD_NAME = "MekanismAcademy Core"
     const val MOD_LICENSE = "MIT"
-    const val MOD_VERSION = "2.6.0"
-    const val MOD_GROUP_ID = "io.github.mochi_753.examplemod"
-    const val MOD_DISPLAY_URL = "https://github.com/mochi-753/MDK-1.21.1-ModDevGradle"
+    const val MOD_VERSION = "0.1.0"
+    const val MOD_GROUP_ID = "io.github.mochi_753.mekanismacademy"
+    const val MOD_DISPLAY_URL = "https://github.com/mochi-753/MekanismAcademy-Core"
     const val MOD_AUTHORS = "Mochi753"
-    const val MOD_DESCRIPTION = "EXAMPLE MOD"
+    const val MOD_DESCRIPTION = "A core mod for the “MekanismAcademy” modpack."
 
-    const val CURSEFORGE_PROJECT_ID = "1576170"
-    const val MODRINTH_PROJECT_ID = "MOXi22S6"
+    const val CURSEFORGE_PROJECT_ID = ""
+    const val MODRINTH_PROJECT_ID = ""
+
+    const val MEKANISM_VERSION = "1.21.1-10.7.19.85"
+    const val FLYWHEEL_VERSION = "1.0.6"
+    const val PONDER_VERSION = "1.0.87"
 }
 
 tasks.named<Wrapper>("wrapper").configure {
@@ -41,33 +45,15 @@ sourceSets.main.get().resources {
 repositories {
     mavenCentral()
 
-    /*
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = "CurseForge"
-                url = uri("https://cursemaven.com")
-            }
-        }
-        filter {
-            includeGroup("curse.maven")
-        }
+    maven {
+        name = "ModMaven"
+        url = uri("https://modmaven.dev/")
     }
-     */
 
-    /*
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = "Modrinth"
-                url = uri("https://api.modrinth.com/maven")
-            }
-        }
-        filter {
-            includeGroup("maven.modrinth")
-        }
+    maven {
+        name = "CreateMod"
+        url = uri("https://maven.createmod.net")
     }
-     */
 }
 
 base {
@@ -152,6 +138,18 @@ configurations {
 }
 
 dependencies {
+    compileOnlyApi("dev.engine-room.flywheel:flywheel-neoforge-api-${ModConfig.MINECRAFT_VERSION}:${ModConfig.FLYWHEEL_VERSION}")
+    implementation("net.createmod.ponder:ponder-neoforge:${ModConfig.PONDER_VERSION}+mc${ModConfig.MINECRAFT_VERSION}")
+
+    runtimeOnly("mekanism:Mekanism:${ModConfig.MEKANISM_VERSION}")
+    runtimeOnly("mekanism:Mekanism:${ModConfig.MEKANISM_VERSION}:additions")
+    runtimeOnly("mekanism:Mekanism:${ModConfig.MEKANISM_VERSION}:generators")
+    runtimeOnly("mekanism:Mekanism:${ModConfig.MEKANISM_VERSION}:tools")
+
+    jarJar(runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${ModConfig.MINECRAFT_VERSION}:${ModConfig.FLYWHEEL_VERSION}")) {
+    }
+    jarJar(api("net.createmod.ponder:ponder-neoforge:${ModConfig.PONDER_VERSION}+mc${ModConfig.MINECRAFT_VERSION}")) {
+    }
 }
 
 val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
@@ -181,6 +179,10 @@ sourceSets.main {
 }
 
 neoForge.ideSyncTask(generateModMetadata)
+
+tasks.named("createMinecraftArtifacts") {
+    dependsOn(generateModMetadata)
+}
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
